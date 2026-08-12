@@ -13,6 +13,7 @@ export default function LoginScreen() {
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
 
+  const [isLogin, setIsLogin] = useState(false); // Par défaut: Inscription (comme demandé)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,31 +33,34 @@ export default function LoginScreen() {
     });
   }, []);
 
-  const handleLogin = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password: password,
-    });
-    
-    if (error) {
-      Alert.alert('Erreur de connexion', error.message);
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+      return;
     }
-    setLoading(false);
-  };
-
-  const handleSignUp = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: password,
-    });
     
-    if (error) {
-      Alert.alert('Erreur', error.message);
+    setLoading(true);
+    
+    if (isLogin) {
+      // Connexion
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password,
+      });
+      if (error) Alert.alert('Erreur de connexion', error.message);
     } else {
-      Alert.alert('Succès', 'Vérifiez vos emails pour confirmer votre compte (si activé), sinon vous pouvez vous connecter.');
+      // Inscription
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password: password,
+      });
+      if (error) {
+        Alert.alert('Erreur', error.message);
+      } else {
+        Alert.alert('Succès', "Création réussie ! Vous êtes maintenant connecté.");
+      }
     }
+    
     setLoading(false);
   };
 
@@ -80,20 +84,26 @@ export default function LoginScreen() {
             </View>
 
             <View style={styles.welcomeTextContainer}>
-              <Text style={[styles.welcomeTitle, { color: themeColors.onSurface }]}>Welcome Back</Text>
-              <Text style={[styles.welcomeSubtitle, { color: themeColors.onSurfaceVariant }]}>Sign in to stay productive.</Text>
+              <Text style={[styles.welcomeTitle, { color: themeColors.onSurface }]}>
+                {isLogin ? "Bon retour !" : "Créer un compte"}
+              </Text>
+              <Text style={[styles.welcomeSubtitle, { color: themeColors.onSurfaceVariant, textAlign: 'center' }]}>
+                {isLogin 
+                  ? "Connectez-vous pour retrouver vos tâches." 
+                  : "Inscrivez-vous pour créer votre propre espace de planification personnel."}
+              </Text>
             </View>
 
             {/* Form */}
             <View style={styles.formContainer}>
               {/* Email */}
               <View style={styles.inputGroup}>
-                <Text style={[styles.label, { color: themeColors.onSurface }]}>Email Address</Text>
+                <Text style={[styles.label, { color: themeColors.onSurface }]}>Adresse Email</Text>
                 <View style={[styles.inputWrapper, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.outlineVariant }]}>
                   <SymbolView name={{ ios: 'envelope', android: 'mail', web: 'mail' }} size={20} tintColor={themeColors.outline} style={styles.inputIcon} />
                   <TextInput
                     style={[styles.input, { color: themeColors.onSurface }]}
-                    placeholder="you@example.com"
+                    placeholder="jean@exemple.com"
                     placeholderTextColor={themeColors.outline}
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -105,7 +115,7 @@ export default function LoginScreen() {
 
               {/* Password */}
               <View style={styles.inputGroup}>
-                <Text style={[styles.label, { color: themeColors.onSurface }]}>Password</Text>
+                <Text style={[styles.label, { color: themeColors.onSurface }]}>Mot de passe</Text>
                 <View style={[styles.inputWrapper, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.outlineVariant }]}>
                   <SymbolView name={{ ios: 'lock', android: 'lock', web: 'lock' }} size={20} tintColor={themeColors.outline} style={styles.inputIcon} />
                   <TextInput
@@ -119,59 +129,40 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              {/* Forgot Password */}
-              <View style={styles.forgotPasswordContainer}>
-                <Pressable>
-                  <Text style={[styles.forgotPasswordText, { color: themeColors.secondary }]}>Forgot Password?</Text>
-                </Pressable>
-              </View>
+              {isLogin && (
+                <View style={styles.forgotPasswordContainer}>
+                  <Pressable>
+                    <Text style={[styles.forgotPasswordText, { color: themeColors.secondary }]}>Mot de passe oublié ?</Text>
+                  </Pressable>
+                </View>
+              )}
 
-              {/* Sign In Button */}
+              {/* Submit Button */}
               <Pressable 
                 style={({ pressed }) => [
                   styles.loginBtn, 
                   { backgroundColor: themeColors.primary },
                   pressed && { opacity: 0.9, transform: [{ scale: 0.98 }] }
                 ]}
-                onPress={handleLogin}
+                onPress={handleSubmit}
+                disabled={loading}
               >
-                <Text style={[styles.loginBtnText, { color: themeColors.onPrimary }]}>Sign In</Text>
+                <Text style={[styles.loginBtnText, { color: themeColors.onPrimary }]}>
+                  {loading ? 'Patientez...' : (isLogin ? "Se connecter" : "S'inscrire")}
+                </Text>
                 <SymbolView name={{ ios: 'arrow.right', android: 'arrow_forward', web: 'arrow_forward' }} size={18} tintColor={themeColors.onPrimary} />
               </Pressable>
             </View>
 
-            {/* Divider */}
-            <View style={styles.dividerContainer}>
-              <View style={[styles.dividerLine, { backgroundColor: themeColors.outlineVariant + '50' }]} />
-              <Text style={[styles.dividerText, { color: themeColors.onSurfaceVariant, backgroundColor: themeColors.surface }]}>Or continue with</Text>
-            </View>
-
-            {/* Social Buttons */}
-            <View style={styles.socialContainer}>
-              <Pressable style={({ pressed }) => [
-                styles.socialBtn,
-                { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.outlineVariant },
-                pressed && { backgroundColor: themeColors.surfaceContainerLow }
-              ]}>
-                <SymbolView name={{ ios: 'globe', android: 'language', web: 'language' }} size={20} tintColor={themeColors.onSurfaceVariant} />
-                <Text style={[styles.socialBtnText, { color: themeColors.onSurface }]}>Google</Text>
-              </Pressable>
-              
-              <Pressable style={({ pressed }) => [
-                styles.socialBtn,
-                { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.outlineVariant },
-                pressed && { backgroundColor: themeColors.surfaceContainerLow }
-              ]}>
-                <SymbolView name={{ ios: 'apple.logo', android: 'smartphone', web: 'smartphone' }} size={20} tintColor={themeColors.onSurfaceVariant} />
-                <Text style={[styles.socialBtnText, { color: themeColors.onSurface }]}>Apple</Text>
-              </Pressable>
-            </View>
-
-            {/* Sign up */}
+            {/* Toggle Mode */}
             <View style={styles.footerContainer}>
-              <Text style={[styles.footerText, { color: themeColors.onSurfaceVariant }]}>Don't have an account? </Text>
-              <Pressable onPress={handleSignUp} disabled={loading}>
-                <Text style={[styles.signUpText, { color: themeColors.primary }]}>{loading ? '...' : 'Sign up'}</Text>
+              <Text style={[styles.footerText, { color: themeColors.onSurfaceVariant }]}>
+                {isLogin ? "Vous n'avez pas de compte ? " : "Vous avez déjà un compte ? "}
+              </Text>
+              <Pressable onPress={() => { setIsLogin(!isLogin); setEmail(''); setPassword(''); }}>
+                <Text style={[styles.signUpText, { color: themeColors.primary }]}>
+                  {isLogin ? "S'inscrire" : "Se connecter"}
+                </Text>
               </Pressable>
             </View>
 
