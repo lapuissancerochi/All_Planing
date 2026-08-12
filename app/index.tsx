@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView, Alert } from 'react-native';
 import { Text } from '@/components/Themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SymbolView } from 'expo-symbols';
 import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import { supabase } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -14,10 +15,49 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    // Naviguer vers les tabs après la connexion
-    router.replace('/(tabs)');
+  // Vérifier si l'utilisateur est déjà connecté
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        router.replace('/(tabs)');
+      }
+    });
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        router.replace('/(tabs)');
+      }
+    });
+  }, []);
+
+  const handleLogin = async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password: password,
+    });
+    
+    if (error) {
+      Alert.alert('Erreur de connexion', error.message);
+    }
+    setLoading(false);
+  };
+
+  const handleSignUp = async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email: email.trim(),
+      password: password,
+    });
+    
+    if (error) {
+      Alert.alert('Erreur', error.message);
+    } else {
+      Alert.alert('Succès', 'Vérifiez vos emails pour confirmer votre compte (si activé), sinon vous pouvez vous connecter.');
+    }
+    setLoading(false);
   };
 
   return (
@@ -130,8 +170,8 @@ export default function LoginScreen() {
             {/* Sign up */}
             <View style={styles.footerContainer}>
               <Text style={[styles.footerText, { color: themeColors.onSurfaceVariant }]}>Don't have an account? </Text>
-              <Pressable>
-                <Text style={[styles.signUpText, { color: themeColors.primary }]}>Sign up</Text>
+              <Pressable onPress={handleSignUp} disabled={loading}>
+                <Text style={[styles.signUpText, { color: themeColors.primary }]}>{loading ? '...' : 'Sign up'}</Text>
               </Pressable>
             </View>
 

@@ -1,14 +1,21 @@
 import { SymbolView } from 'expo-symbols';
 import { Link, Tabs } from 'expo-router';
 import { Pressable, View } from 'react-native';
+import { useEffect } from 'react';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useTaskStore } from '@/store/useTaskStore';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
+  const { fetchData } = useTaskStore();
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <Tabs

@@ -79,6 +79,20 @@ export default function ProfileScreen() {
             <Text style={[styles.statLabel, { color: themeColors.onSurfaceVariant }]}>Sessions Focus</Text>
           </View>
         </View>
+
+        {/* Déconnexion */}
+        <Pressable 
+          style={({ pressed }) => [styles.logoutBtn, { backgroundColor: themeColors.errorContainer, opacity: pressed ? 0.8 : 1 }]}
+          onPress={async () => {
+            const { supabase } = await import('@/lib/supabase');
+            const { router } = await import('expo-router');
+            await supabase.auth.signOut();
+            router.replace('/');
+          }}
+        >
+          <SymbolView name={{ ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' }} size={20} tintColor={themeColors.error} />
+          <Text style={[styles.logoutText, { color: themeColors.error }]}>Se déconnecter</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -123,5 +137,18 @@ const styles = StyleSheet.create({
     shadowColor: '#1c1917', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, elevation: 2,
   },
   statValue: { fontSize: 32, fontWeight: '700', marginBottom: 8 },
-  statLabel: { fontSize: 12, textAlign: 'center', fontWeight: '500' }
+  statLabel: { fontSize: 12, textAlign: 'center', fontWeight: '500' },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 16,
+    marginTop: 24,
+    gap: 8,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+  }
 });
