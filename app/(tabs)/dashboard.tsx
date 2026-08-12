@@ -9,15 +9,10 @@ import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
 
 export default function DashboardScreen() {
-  const { tasks, focusSessionsCompletedToday, tasksCompletedToday, tasksCreatedToday, checkAndResetDailyStats } = useTaskStore();
+  const { tasks, focusSessionsCompletedToday, tasksCompletedToday, tasksCreatedToday } = useTaskStore();
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
-
-
-  useEffect(() => {
-    checkAndResetDailyStats();
-  }, []);
 
   // --- CALCUL DE L'ENERGY SCORE ---
   const getEnergyScore = () => {

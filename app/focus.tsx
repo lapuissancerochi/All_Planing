@@ -18,7 +18,7 @@ export default function FocusScreen() {
   const [isFinished, setIsFinished] = useState(false);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(time => time - 1);

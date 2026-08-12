@@ -54,7 +54,7 @@ export default function TabLayout() {
         options={{
           title: 'Matrice',
           tabBarIcon: ({ color }) => (
-            <SymbolView name={{ ios: 'square.grid.2x2', android: 'grid', web: 'grid' }} tintColor={color} size={24} />
+            <SymbolView name={{ ios: 'square.grid.2x2', android: 'grid_view', web: 'grid_view' }} tintColor={color} size={24} />
           ),
         }}
       />
