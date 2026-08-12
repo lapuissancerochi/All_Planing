@@ -71,91 +71,84 @@ export default function DashboardScreen() {
   const dailyQuote = quotes[new Date().getDay() % quotes.length];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: interpretation.color + '10' }]} showsVerticalScrollIndicator={false}>
+    <ScrollView style={[styles.container, { backgroundColor: themeColors.surfaceBright }]} showsVerticalScrollIndicator={false}>
       
       {/* CITATION DU JOUR */}
-      <View style={[styles.quoteCard, { backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF', borderLeftColor: interpretation.color }]}>
-        <Text style={styles.quoteText}>"{dailyQuote}"</Text>
+      <View style={[styles.quoteCard, { backgroundColor: themeColors.surfaceContainerLowest }]}>
+        <Text style={[styles.quoteText, { color: themeColors.onSurfaceVariant }]}>"{dailyQuote}"</Text>
       </View>
 
       {/* HEADER : ENERGY SCORE */}
-      <View style={[styles.card, { backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF' }]}>
+      <View style={[styles.card, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant }]}>
         <View style={styles.scoreHeader}>
-          <Text style={styles.cardTitle}>Energy Score</Text>
-          <Pressable style={styles.infoBtn} onPress={showScoreExplanation}>
-            <SymbolView name={{ ios: 'info.circle', android: 'info', web: 'info' }} size={20} tintColor="#888" />
-            <Text style={styles.infoText}>Pourquoi ce score ?</Text>
+          <Text style={[styles.cardTitle, { color: themeColors.onSurface }]}>Energy Score</Text>
+          <Pressable style={[styles.infoBtn, { backgroundColor: themeColors.surfaceContainer }]} onPress={showScoreExplanation}>
+            <SymbolView name={{ ios: 'info.circle', android: 'info', web: 'info' }} size={16} tintColor={themeColors.onSurfaceVariant} />
+            <Text style={[styles.infoText, { color: themeColors.onSurfaceVariant }]}>Détails</Text>
           </Pressable>
         </View>
         
         <View style={styles.scoreCircleContainer}>
-          <View style={[styles.scoreCircle, { borderColor: interpretation.color }]}>
-            <Text style={[styles.scoreNumber, { color: interpretation.color }]}>{score}</Text>
-            <Text style={styles.scoreMax}>/100</Text>
+          <View style={[styles.scoreCircle, { borderColor: interpretation.color + '40', borderLeftColor: interpretation.color, borderTopColor: interpretation.color }]}>
+            <Text style={[styles.scoreNumber, { color: themeColors.onSurface }]}>{score}%</Text>
           </View>
         </View>
         
-        <Text style={[styles.scoreInterpretation, { color: interpretation.color }]}>
-          {interpretation.text}
-        </Text>
+        <View style={[styles.interpretationBadge, { backgroundColor: interpretation.color + '20', borderColor: interpretation.color + '40' }]}>
+          <Text style={[styles.scoreInterpretation, { color: interpretation.color }]}>
+            {interpretation.text}
+          </Text>
+        </View>
         
         <View style={styles.scoreDetailsRow}>
           <View style={styles.scoreDetailItem}>
-            <Text style={styles.detailValue}>{tasksCompletedToday}</Text>
-            <Text style={styles.detailLabel}>Tâches</Text>
+            <Text style={[styles.detailValue, { color: themeColors.onSurface }]}>{tasksCompletedToday}</Text>
+            <Text style={[styles.detailLabel, { color: themeColors.outline }]}>Tâches</Text>
           </View>
           <View style={styles.scoreDetailItem}>
-            <Text style={styles.detailValue}>{focusSessionsCompletedToday}</Text>
-            <Text style={styles.detailLabel}>Focus</Text>
+            <Text style={[styles.detailValue, { color: themeColors.onSurface }]}>{focusSessionsCompletedToday}</Text>
+            <Text style={[styles.detailLabel, { color: themeColors.outline }]}>Focus</Text>
           </View>
           <View style={styles.scoreDetailItem}>
-            <Text style={styles.detailValue}>{tasksCreatedToday}</Text>
-            <Text style={styles.detailLabel}>Ajouts</Text>
+            <Text style={[styles.detailValue, { color: themeColors.onSurface }]}>{tasksCreatedToday}</Text>
+            <Text style={[styles.detailLabel, { color: themeColors.outline }]}>Ajouts</Text>
           </View>
         </View>
       </View>
 
-      {/* TOP 3 PRIORITÉS */}
-      <View style={[styles.card, { backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF' }]}>
-        <View style={styles.topTasksHeader}>
-          <Text style={styles.cardTitle}>Top 3 Priorités (Q1)</Text>
-          <Pressable onPress={() => router.push('/matrix')}>
-            <Text style={{ color: themeColors.tint, fontSize: 13, fontWeight: 'bold' }}>Voir toutes</Text>
+      <View style={styles.statsRow}>
+        {/* FOCUS MODE CARD */}
+        <View style={[styles.halfCard, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant }]}>
+          <View style={styles.focusHeader}>
+            <Text style={[styles.cardTitle, { color: themeColors.onSurface, fontSize: 16 }]}>Focus Mode</Text>
+            <SymbolView name={{ ios: 'timer', android: 'timer', web: 'timer' }} size={16} tintColor={themeColors.outline} />
+          </View>
+          <View style={styles.focusCenter}>
+            <Text style={[styles.focusTime, { color: themeColors.onSurface }]}>25:00</Text>
+            <Text style={[styles.focusLabel, { color: themeColors.outline }]}>POMODORO</Text>
+          </View>
+          <Pressable style={[styles.focusPlayBtn, { backgroundColor: themeColors.onSurface }]} onPress={() => router.push('/focus')}>
+            <SymbolView name={{ ios: 'play.fill', android: 'play_arrow', web: 'play_arrow' }} size={24} tintColor={themeColors.surfaceBright} />
           </Pressable>
         </View>
-        {top3Tasks.length === 0 ? (
-          <Text style={styles.emptyText}>Aucune priorité définie pour le moment.</Text>
-        ) : (
-          top3Tasks.map((task, index) => (
-            <View key={task.id} style={styles.topTaskRow}>
-              <View style={[styles.topTaskRank, { backgroundColor: themeColors.tint + '20' }]}>
-                <Text style={[styles.rankText, { color: themeColors.tint }]}>{index + 1}</Text>
-              </View>
-              <Text style={styles.topTaskTitle} numberOfLines={1}>{task.title}</Text>
-            </View>
-          ))
-        )}
-      </View>
 
-      {/* AUTRES STATS */}
-      <View style={styles.statsRow}>
-        <View style={[styles.halfCard, { backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF' }]}>
-          <SymbolView name={{ ios: 'clock', android: 'schedule', web: 'schedule' }} size={24} tintColor={themeColors.tint} />
-          <Text style={styles.statValue}>{estimatedHours}h{estimatedMins > 0 ? estimatedMins.toString().padStart(2, '0') : ''}</Text>
-          <Text style={styles.statLabel}>Temps estimé</Text>
-        </View>
-        
-        <View style={[styles.halfCard, { backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF' }]}>
-          <SymbolView name={{ ios: 'chart.bar.fill', android: 'bar_chart', web: 'bar_chart' }} size={24} tintColor="#FFB84B" />
-          <View style={styles.miniChartPlaceholder}>
-            <View style={[styles.bar, { height: 20 }]} />
-            <View style={[styles.bar, { height: 40 }]} />
-            <View style={[styles.bar, { height: 30 }]} />
-            <View style={[styles.bar, { height: 60 }]} />
-            <View style={[styles.bar, { height: 50 }]} />
-            <View style={[styles.bar, { height: score * 0.8, backgroundColor: interpretation.color }]} />
+        {/* TOP 3 PRIORITÉS */}
+        <View style={[styles.halfCard, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant, padding: 16 }]}>
+          <View style={styles.topTasksHeader}>
+            <Text style={[styles.cardTitle, { color: themeColors.onSurface, fontSize: 16 }]}>Priorités</Text>
           </View>
-          <Text style={styles.statLabel}>7 derniers jours</Text>
+          {top3Tasks.length === 0 ? (
+            <Text style={[styles.emptyText, { color: themeColors.outline }]}>Aucune urgence.</Text>
+          ) : (
+            top3Tasks.map((task, index) => (
+              <View key={task.id} style={styles.topTaskRow}>
+                <View style={[styles.topTaskRank, { backgroundColor: themeColors.q1Container }]}>
+                  <Text style={[styles.rankText, { color: themeColors.q1 }]}>{index + 1}</Text>
+                </View>
+                <Text style={[styles.topTaskTitle, { color: themeColors.onSurface }]} numberOfLines={1}>{task.title}</Text>
+              </View>
+            ))
+          )}
         </View>
       </View>
 
@@ -165,193 +158,58 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-  },
+  container: { flex: 1, padding: 24, paddingTop: 60 },
   card: {
-    padding: 20,
-    borderRadius: 20,
+    padding: 24,
+    borderRadius: 24,
+    borderWidth: 1,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowColor: '#1c1917', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, elevation: 2,
   },
-  quoteCard: {
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  quoteText: {
-    fontSize: 14,
-    fontStyle: 'italic',
-    color: '#888',
-    fontWeight: '500',
-  },
-  infoBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#88888815',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  infoText: {
-    fontSize: 12,
-    color: '#888',
-    fontWeight: '600',
-  },
-  topTasksHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  scoreHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  trendBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#34C75915',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-  },
-  trendText: {
-    color: '#34C759',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  scoreCircleContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
+  quoteCard: { paddingVertical: 24, alignItems: 'center' },
+  quoteText: { fontSize: 20, fontStyle: 'italic', fontWeight: '300', textAlign: 'center', opacity: 0.8 },
+  
+  infoBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 16 },
+  infoText: { fontSize: 12, fontWeight: '600' },
+  
+  topTasksHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  scoreHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
+  cardTitle: { fontSize: 20, fontWeight: '600' },
+  
+  scoreCircleContainer: { alignItems: 'center', justifyContent: 'center', marginVertical: 12 },
   scoreCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    borderWidth: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexDirection: 'row',
+    width: 160, height: 160, borderRadius: 80, borderWidth: 8,
+    alignItems: 'center', justifyContent: 'center',
+    transform: [{ rotate: '-45deg' }]
   },
-  scoreNumber: {
-    fontSize: 48,
-    fontWeight: 'bold',
-  },
-  scoreMax: {
-    fontSize: 16,
-    color: '#888',
-    fontWeight: '600',
-    marginTop: 20,
-  },
-  scoreInterpretation: {
-    textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '600',
-    marginBottom: 24,
-  },
-  scoreDetailsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    borderTopWidth: 1,
-    borderTopColor: '#88888820',
-    paddingTop: 16,
-  },
-  scoreDetailItem: {
-    alignItems: 'center',
-  },
-  detailValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 4,
-  },
-  emptyText: {
-    color: '#888',
-    fontStyle: 'italic',
-    marginTop: 12,
-  },
-  topTaskRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  topTaskRank: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  rankText: {
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  topTaskTitle: {
-    fontSize: 15,
-    fontWeight: '500',
-    flex: 1,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
+  scoreNumber: { fontSize: 56, fontWeight: '700', transform: [{ rotate: '45deg' }] },
+  
+  interpretationBadge: { alignSelf: 'center', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, marginBottom: 24 },
+  scoreInterpretation: { fontSize: 14, fontWeight: '600' },
+  
+  scoreDetailsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingTop: 16 },
+  scoreDetailItem: { alignItems: 'center' },
+  detailValue: { fontSize: 24, fontWeight: '700' },
+  detailLabel: { fontSize: 12, marginTop: 4, fontWeight: '500' },
+  
+  emptyText: { fontStyle: 'italic', marginTop: 12, fontSize: 14 },
+  topTaskRow: { flexDirection: 'row', alignItems: 'center', marginTop: 12 },
+  topTaskRank: { width: 24, height: 24, borderRadius: 6, alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  rankText: { fontWeight: 'bold', fontSize: 12 },
+  topTaskTitle: { fontSize: 14, fontWeight: '500', flex: 1 },
+  
+  statsRow: { flexDirection: 'row', gap: 16 },
   halfCard: {
     flex: 1,
-    padding: 16,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
-    alignItems: 'flex-start',
+    padding: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    shadowColor: '#1c1917', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, elevation: 2,
+    alignItems: 'center',
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 12,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#888',
-  },
-  miniChartPlaceholder: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 60,
-    gap: 6,
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  bar: {
-    width: 12,
-    backgroundColor: '#88888840',
-    borderRadius: 4,
-  }
+  focusHeader: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  focusCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', marginVertical: 16 },
+  focusTime: { fontSize: 40, fontWeight: '700' },
+  focusLabel: { fontSize: 10, letterSpacing: 2, fontWeight: '600', marginTop: 4 },
+  focusPlayBtn: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', shadowColor: '#1c1917', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 3 },
 });

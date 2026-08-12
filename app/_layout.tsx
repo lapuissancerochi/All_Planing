@@ -53,7 +53,7 @@ function RootLayoutNav() {
   }, []);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={{...DefaultTheme, colors: {...DefaultTheme.colors, background: '#fcf8f7'}}}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="add-task" options={{ presentation: 'modal', title: 'Nouvelle Tâche' }} />

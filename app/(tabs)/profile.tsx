@@ -21,61 +21,61 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: themeColors.surfaceBright }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Mon Profil</Text>
+        <Text style={[styles.headerTitle, { color: themeColors.onSurface }]}>Mon Profil</Text>
       </View>
 
       <View style={styles.content}>
         <View style={styles.avatarContainer}>
-          <View style={[styles.avatar, { backgroundColor: themeColors.tint + '20' }]}>
-            <SymbolView name={{ ios: 'person.fill', android: 'person', web: 'person' }} size={48} tintColor={themeColors.tint} />
+          <View style={[styles.avatar, { backgroundColor: themeColors.primaryContainer, borderColor: themeColors.primaryFixed }]}>
+            <SymbolView name={{ ios: 'person.fill', android: 'person', web: 'person' }} size={48} tintColor={themeColors.primary} />
           </View>
-          <Text style={styles.userName}>Utilisateur ALLPLANING</Text>
-          <Text style={styles.userStatus}>Producteur en série 🎯</Text>
+          <Text style={[styles.userName, { color: themeColors.onSurface }]}>Utilisateur ALLPLANING</Text>
+          <Text style={[styles.userStatus, { color: themeColors.onSurfaceVariant }]}>Producteur en série 🎯</Text>
         </View>
 
-        <View style={[styles.card, { backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF' }]}>
+        <View style={[styles.card, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant }]}>
           <View style={styles.cardHeader}>
-            <SymbolView name={{ ios: 'target', android: 'my_location', web: 'my_location' }} size={24} tintColor="#FF4B4B" />
-            <Text style={styles.cardTitle}>Objectif du mois</Text>
+            <SymbolView name={{ ios: 'target', android: 'my_location', web: 'my_location' }} size={24} tintColor={themeColors.q1} />
+            <Text style={[styles.cardTitle, { color: themeColors.onSurface }]}>Objectif du mois</Text>
           </View>
           
           {isEditing ? (
             <View style={styles.editGoalContainer}>
               <TextInput
-                style={[styles.goalInput, { color: themeColors.text, borderColor: themeColors.text + '40' }]}
+                style={[styles.goalInput, { color: themeColors.onSurface, borderColor: themeColors.outlineVariant, backgroundColor: themeColors.surfaceContainerLowest }]}
                 value={goalInput}
                 onChangeText={setGoalInput}
                 placeholder="Quel est votre grand objectif ce mois-ci ?"
-                placeholderTextColor="#888"
+                placeholderTextColor={themeColors.outline}
                 multiline
                 autoFocus
               />
-              <Pressable style={[styles.saveBtn, { backgroundColor: themeColors.tint }]} onPress={saveGoal}>
-                <Text style={styles.saveBtnText}>Enregistrer</Text>
+              <Pressable style={[styles.saveBtn, { backgroundColor: themeColors.primary }]} onPress={saveGoal}>
+                <Text style={[styles.saveBtnText, { color: themeColors.onPrimary }]}>Enregistrer</Text>
               </Pressable>
             </View>
           ) : (
-            <Pressable style={styles.goalDisplayContainer} onPress={() => setIsEditing(true)}>
+            <Pressable style={[styles.goalDisplayContainer, { backgroundColor: themeColors.surfaceContainer }]} onPress={() => setIsEditing(true)}>
               {monthlyGoal ? (
-                <Text style={styles.goalText}>{monthlyGoal}</Text>
+                <Text style={[styles.goalText, { color: themeColors.onSurface }]}>{monthlyGoal}</Text>
               ) : (
-                <Text style={styles.goalEmpty}>Aucun objectif défini. Cliquez pour ajouter.</Text>
+                <Text style={[styles.goalEmpty, { color: themeColors.outline }]}>Aucun objectif défini. Cliquez pour ajouter.</Text>
               )}
-              <SymbolView name={{ ios: 'pencil', android: 'edit', web: 'edit' }} size={16} tintColor="#888" />
+              <SymbolView name={{ ios: 'pencil', android: 'edit', web: 'edit' }} size={16} tintColor={themeColors.outline} />
             </Pressable>
           )}
         </View>
 
         <View style={styles.statsGrid}>
-          <View style={[styles.statCard, { backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF' }]}>
-            <Text style={styles.statValue}>{tasksCompletedToday}</Text>
-            <Text style={styles.statLabel}>Tâches finies (Aujourd'hui)</Text>
+          <View style={[styles.statCard, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant }]}>
+            <Text style={[styles.statValue, { color: themeColors.onSurface }]}>{tasksCompletedToday}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.onSurfaceVariant }]}>Tâches finies (Aujourd'hui)</Text>
           </View>
-          <View style={[styles.statCard, { backgroundColor: colorScheme === 'dark' ? '#1E1E1E' : '#FFFFFF' }]}>
-            <Text style={styles.statValue}>{focusSessionsCompletedToday}</Text>
-            <Text style={styles.statLabel}>Sessions Focus</Text>
+          <View style={[styles.statCard, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant }]}>
+            <Text style={[styles.statValue, { color: themeColors.onSurface }]}>{focusSessionsCompletedToday}</Text>
+            <Text style={[styles.statLabel, { color: themeColors.onSurfaceVariant }]}>Sessions Focus</Text>
           </View>
         </View>
       </View>
@@ -84,124 +84,43 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    padding: 20,
-    paddingTop: 60,
-    borderBottomWidth: 1,
-    borderBottomColor: '#88888820',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  content: {
-    padding: 16,
-  },
-  avatarContainer: {
-    alignItems: 'center',
-    marginVertical: 32,
-  },
+  container: { flex: 1 },
+  header: { padding: 24, paddingTop: 60, paddingBottom: 16 },
+  headerTitle: { fontSize: 32, fontWeight: '700' },
+  content: { padding: 16 },
+  avatarContainer: { alignItems: 'center', marginVertical: 32 },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
+    width: 100, height: 100, borderRadius: 50, borderWidth: 1,
+    alignItems: 'center', justifyContent: 'center', marginBottom: 16,
   },
-  userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  userStatus: {
-    fontSize: 14,
-    color: '#888',
-  },
+  userName: { fontSize: 20, fontWeight: '700', marginBottom: 4 },
+  userStatus: { fontSize: 14 },
   card: {
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
-    marginBottom: 16,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  goalDisplayContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    backgroundColor: '#88888810',
-    padding: 16,
-    borderRadius: 12,
-  },
-  goalText: {
-    fontSize: 15,
-    flex: 1,
-    lineHeight: 22,
-  },
-  goalEmpty: {
-    fontSize: 15,
-    color: '#888',
-    fontStyle: 'italic',
-    flex: 1,
-  },
-  editGoalContainer: {
-    gap: 12,
-  },
-  goalInput: {
+    padding: 24,
+    borderRadius: 24,
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    minHeight: 80,
-    textAlignVertical: 'top',
+    shadowColor: '#1c1917', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, elevation: 2,
+    marginBottom: 16,
   },
-  saveBtn: {
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
+  cardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+  cardTitle: { fontSize: 16, fontWeight: '600' },
+  goalDisplayContainer: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+    padding: 16, borderRadius: 16,
   },
-  saveBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
+  goalText: { fontSize: 15, flex: 1, lineHeight: 22 },
+  goalEmpty: { fontSize: 15, fontStyle: 'italic', flex: 1 },
+  editGoalContainer: { gap: 12 },
+  goalInput: {
+    borderWidth: 1, borderRadius: 16, padding: 16, minHeight: 100, textAlignVertical: 'top',
   },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 16,
-  },
+  saveBtn: { padding: 16, borderRadius: 16, alignItems: 'center' },
+  saveBtnText: { fontWeight: '600', fontSize: 16 },
+  statsGrid: { flexDirection: 'row', gap: 16 },
   statCard: {
-    flex: 1,
-    padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3,
+    flex: 1, padding: 24, borderRadius: 24, borderWidth: 1, alignItems: 'center',
+    shadowColor: '#1c1917', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.02, shadowRadius: 10, elevation: 2,
   },
-  statValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#888',
-    textAlign: 'center',
-  }
+  statValue: { fontSize: 32, fontWeight: '700', marginBottom: 8 },
+  statLabel: { fontSize: 12, textAlign: 'center', fontWeight: '500' }
 });
