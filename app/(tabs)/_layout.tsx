@@ -22,8 +22,6 @@ export default function TabLayout() {
           borderTopColor: themeColors.surfaceVariant,
           elevation: 0,
           shadowOpacity: 0,
-          height: 60,
-          paddingBottom: 8,
         },
       }}>
       <Tabs.Screen

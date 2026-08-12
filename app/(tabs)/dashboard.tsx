@@ -1,4 +1,5 @@
 import { StyleSheet, View, ScrollView, Pressable, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/Themed';
 import { useTaskStore } from '@/store/useTaskStore';
 import Colors from '@/constants/Colors';
@@ -71,7 +72,8 @@ export default function DashboardScreen() {
   const dailyQuote = quotes[new Date().getDay() % quotes.length];
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: themeColors.surfaceBright }]} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.surfaceBright }]} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false}>
       
       {/* CITATION DU JOUR */}
       <View style={[styles.quoteCard, { backgroundColor: themeColors.surfaceContainerLowest }]}>
@@ -153,12 +155,13 @@ export default function DashboardScreen() {
       </View>
 
       <View style={{height: 40}} />
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, paddingTop: 60 },
+  container: { flex: 1, paddingHorizontal: 24, paddingBottom: 24 },
   card: {
     padding: 24,
     borderRadius: 24,

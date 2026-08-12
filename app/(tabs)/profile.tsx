@@ -1,4 +1,5 @@
 import { StyleSheet, View, TextInput, Pressable, Keyboard } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/Themed';
 import { useTaskStore } from '@/store/useTaskStore';
 import Colors from '@/constants/Colors';
@@ -21,7 +22,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.surfaceBright }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.surfaceBright }]} edges={['top']}>
       <View style={styles.header}>
         <Text style={[styles.headerTitle, { color: themeColors.onSurface }]}>Mon Profil</Text>
       </View>
@@ -79,13 +80,13 @@ export default function ProfileScreen() {
           </View>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { padding: 24, paddingTop: 60, paddingBottom: 16 },
+  header: { padding: 24, paddingBottom: 16 },
   headerTitle: { fontSize: 32, fontWeight: '700' },
   content: { padding: 16 },
   avatarContainer: { alignItems: 'center', marginVertical: 32 },

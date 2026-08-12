@@ -1,4 +1,5 @@
 import { StyleSheet, View, ScrollView, Pressable, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/Themed';
 import { useTaskStore, Task, Quadrant } from '@/store/useTaskStore';
 import Colors from '@/constants/Colors';
@@ -77,7 +78,7 @@ export default function MatrixScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.surfaceBright }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.surfaceBright }]} edges={['top']}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: themeColors.onSurface }]}>Eisenhower Matrix</Text>
         <Text style={[styles.subtitle, { color: themeColors.onSurfaceVariant }]}>Focus on what matters most.</Text>
@@ -121,12 +122,12 @@ export default function MatrixScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, paddingTop: 60 },
+  container: { flex: 1, paddingHorizontal: 16, paddingBottom: 16 },
   header: { marginBottom: 16 },
   title: { fontSize: 28, fontWeight: '700', marginBottom: 4 },
   subtitle: { fontSize: 16, fontWeight: '400' },

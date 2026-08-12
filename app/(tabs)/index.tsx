@@ -1,4 +1,5 @@
 import { StyleSheet, FlatList, Pressable, View, Alert, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/Themed';
 import { useTaskStore, Task } from '@/store/useTaskStore';
 import Colors from '@/constants/Colors';
@@ -14,11 +15,11 @@ export default function TasksScreen() {
 
   const getQuadrantColor = (quadrant: string) => {
     switch(quadrant) {
-      case 'Q1': return '#FF4B4B'; // Important & Urgent (Rouge)
-      case 'Q2': return '#4B88FF'; // Important & Non Urgent (Bleu)
-      case 'Q3': return '#FFB84B'; // Non Important & Urgent (Orange)
-      case 'Q4': return '#888888'; // Non Important & Non Urgent (Gris)
-      default: return '#888888';
+      case 'Q1': return themeColors.q1;
+      case 'Q2': return themeColors.q2;
+      case 'Q3': return themeColors.q3;
+      case 'Q4': return themeColors.q4;
+      default: return themeColors.outline;
     }
   };
 
@@ -27,18 +28,6 @@ export default function TasksScreen() {
       if (item.status === 'todo') changeTaskStatus(item.id, 'in_progress');
       else if (item.status === 'in_progress') changeTaskStatus(item.id, 'done');
       else changeTaskStatus(item.id, 'todo');
-    };
-
-    const getStatusColor = () => {
-      if (item.status === 'done') return '#4CAF50';
-      if (item.status === 'in_progress') return '#FFB84B'; // Jaune orangé
-      return '#88888840';
-    };
-
-    const getStatusIcon = () => {
-      if (item.status === 'done') return 'checkmark';
-      if (item.status === 'in_progress') return 'play.fill';
-      return undefined;
     };
 
     return (
@@ -98,7 +87,7 @@ export default function TasksScreen() {
           </View>
         </View>
 
-        <Pressable onPress={() => { /* ... delete code ... */ 
+        <Pressable onPress={() => { 
           if (Platform.OS === 'web') {
             if (window.confirm("Voulez-vous vraiment supprimer cette tâche ?")) {
               deleteTask(item.id);
@@ -117,7 +106,7 @@ export default function TasksScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: themeColors.surfaceBright }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeColors.surfaceBright }]} edges={['top']}>
       <View style={styles.header}>
         <Text style={[styles.title, { color: themeColors.onSurface }]}>My Tasks</Text>
         <Text style={[styles.subtitle, { color: themeColors.onSurfaceVariant }]}>Manage and prioritize your daily action items.</Text>
@@ -144,13 +133,13 @@ export default function TasksScreen() {
           <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} size={32} tintColor={themeColors.onPrimary} />
         </Pressable>
       </Link>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { padding: 24, paddingTop: 60, paddingBottom: 16 },
+  header: { padding: 24, paddingBottom: 16 },
   title: { fontSize: 32, fontWeight: '700', marginBottom: 4 },
   subtitle: { fontSize: 16, fontWeight: '400' },
   listContainer: { paddingHorizontal: 24, paddingBottom: 100 },
