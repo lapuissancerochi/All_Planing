@@ -31,9 +31,14 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#1E1E1E",
+          "dark": {
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#0A0A0A"
+          }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true

@@ -3,8 +3,10 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import Toast from 'react-native-toast-message';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -44,13 +46,20 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { scheduleDailyNudge } = useNotifications();
+
+  useEffect(() => {
+    scheduleDailyNudge();
+  }, []);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="add-task" options={{ presentation: 'modal', title: 'Nouvelle Tâche' }} />
+        <Stack.Screen name="focus" options={{ presentation: 'fullScreenModal', headerShown: false }} />
       </Stack>
+      <Toast />
     </ThemeProvider>
   );
 }
