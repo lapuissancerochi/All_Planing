@@ -1,4 +1,4 @@
-import { StyleSheet, View, TextInput, Pressable, Keyboard } from 'react-native';
+import { StyleSheet, View, TextInput, Pressable, Keyboard, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/Themed';
 import { useTaskStore } from '@/store/useTaskStore';
@@ -80,19 +80,31 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Déconnexion */}
-        <Pressable 
-          style={({ pressed }) => [styles.logoutBtn, { backgroundColor: themeColors.errorContainer, opacity: pressed ? 0.8 : 1 }]}
-          onPress={async () => {
-            const { supabase } = await import('@/lib/supabase');
-            const { router } = await import('expo-router');
-            await supabase.auth.signOut();
-            router.replace('/');
-          }}
-        >
-          <SymbolView name={{ ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' }} size={20} tintColor={themeColors.error} />
-          <Text style={[styles.logoutText, { color: themeColors.error }]}>Se déconnecter</Text>
-        </Pressable>
+        {/* Section Paramètres */}
+        <View style={[styles.card, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant, marginTop: 16 }]}>
+          <View style={styles.cardHeader}>
+            <SymbolView name={{ ios: 'gearshape.fill', android: 'settings', web: 'settings' }} size={24} tintColor={themeColors.outline} />
+            <Text style={[styles.cardTitle, { color: themeColors.onSurface }]}>Paramètres</Text>
+          </View>
+          
+          <Pressable 
+            style={({ pressed }) => [styles.logoutBtn, { backgroundColor: themeColors.errorContainer, opacity: pressed ? 0.8 : 1 }]}
+            onPress={async () => {
+              const { supabase } = await import('@/lib/supabase');
+              const { router } = await import('expo-router');
+              await supabase.auth.signOut();
+              // Force reload to clear cache
+              if (Platform.OS === 'web') {
+                window.location.href = '/';
+              } else {
+                router.replace('/');
+              }
+            }}
+          >
+            <SymbolView name={{ ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' }} size={20} tintColor={themeColors.error} />
+            <Text style={[styles.logoutText, { color: themeColors.error }]}>Se déconnecter de ALLPLANING</Text>
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
