@@ -16,6 +16,7 @@ export default function LoginScreen() {
   const [isLogin, setIsLogin] = useState(false); // Par défaut: Inscription (comme demandé)
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -164,10 +165,17 @@ export default function LoginScreen() {
                     style={[styles.input, { color: themeColors.onSurface }]}
                     placeholder="••••••••"
                     placeholderTextColor={themeColors.outline}
-                    secureTextEntry
+                    secureTextEntry={!showPassword}
                     value={password}
                     onChangeText={setPassword}
                   />
+                  <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
+                    <SymbolView 
+                      name={{ ios: showPassword ? 'eye.slash' : 'eye', android: showPassword ? 'visibility_off' : 'visibility', web: showPassword ? 'visibility_off' : 'visibility' }} 
+                      size={20} 
+                      tintColor={themeColors.outline} 
+                    />
+                  </Pressable>
                 </View>
               </View>
 
@@ -303,6 +311,10 @@ const styles = StyleSheet.create({
   },
   inputIcon: {
     marginRight: 12,
+  },
+  eyeIcon: {
+    padding: 4,
+    marginLeft: 8,
   },
   input: {
     flex: 1,
