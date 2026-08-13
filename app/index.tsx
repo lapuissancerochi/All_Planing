@@ -7,6 +7,11 @@ import { useRouter } from 'expo-router';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { supabase } from '@/lib/supabase';
+import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
+
+// Indispensable pour que le navigateur se referme correctement après la connexion Google
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -85,6 +90,48 @@ export default function LoginScreen() {
     }
     
     setLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setErrorMessage('');
+      const redirectUrl = Linking.createURL('/');
+      
+      if (Platform.OS === 'web') {
+        // Sur le web, Supabase gère la redirection tout seul
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl,
+          },
+        });
+        if (error) setErrorMessage(error.message);
+        return;
+      }
+
+      // Sur Mobile (iOS/Android)
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          skipBrowserRedirect: true,
+        },
+      });
+      if (error) throw error;
+      if (!data?.url) throw new Error('No url returned');
+
+      const res = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
+
+      if (res.type === 'success' && res.url) {
+        // Extraire les paramètres de l'URL pour initialiser la session
+        // (La gestion complète se fait souvent via un écouteur onAuthStateChange déjà en place)
+        console.log("Connecté avec succès:", res.url);
+      } else if (res.type === 'cancel') {
+        setErrorMessage('Connexion Google annulée.');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'La connexion Google a échoué.');
+    }
   };
 
   const handleForgotPassword = async () => {
@@ -209,6 +256,27 @@ export default function LoginScreen() {
                 </Text>
                 <SymbolView name={{ ios: 'arrow.right', android: 'arrow_forward', web: 'arrow_forward' }} size={18} tintColor={themeColors.onPrimary} />
               </Pressable>
+
+              {/* Divider */}
+              <View style={styles.dividerContainer}>
+                <View style={[styles.divider, { backgroundColor: themeColors.outlineVariant }]} />
+                <Text style={[styles.dividerText, { color: themeColors.outline }]}>ou</Text>
+                <View style={[styles.divider, { backgroundColor: themeColors.outlineVariant }]} />
+              </View>
+
+              {/* Google Sign-In Button */}
+              <Pressable 
+                style={({ pressed }) => [
+                  styles.socialBtn, 
+                  { borderColor: themeColors.outlineVariant },
+                  pressed && { opacity: 0.9, transform: [{ scale: 0.98 }], backgroundColor: themeColors.surfaceVariant }
+                ]}
+                onPress={handleGoogleSignIn}
+              >
+                <SymbolView name={{ ios: 'g.circle.fill', android: 'google', web: 'google' }} size={24} tintColor="#EA4335" />
+                <Text style={[styles.socialBtnText, { color: themeColors.onSurface }]}>Continuer avec Google</Text>
+              </Pressable>
+
             </View>
 
             {/* Toggle Mode */}
@@ -355,21 +423,14 @@ const styles = StyleSheet.create({
     marginVertical: 32,
     position: 'relative',
   },
-  dividerLine: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
+  divider: {
+    flex: 1,
     height: 1,
   },
   dividerText: {
     paddingHorizontal: 16,
     fontSize: 12,
     fontWeight: '500',
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 32,
   },
   socialBtn: {
     flex: 1,
