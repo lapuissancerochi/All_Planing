@@ -1,4 +1,4 @@
-import { StyleSheet, View, TextInput, Pressable, Keyboard, Platform } from 'react-native';
+import { StyleSheet, View, TextInput, Pressable, Keyboard, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/Themed';
 import { useTaskStore } from '@/store/useTaskStore';
@@ -27,7 +27,7 @@ export default function ProfileScreen() {
         <Text style={[styles.headerTitle, { color: themeColors.onSurface }]}>Mon Profil</Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         <View style={styles.avatarContainer}>
           <View style={[styles.avatar, { backgroundColor: themeColors.primaryContainer, borderColor: themeColors.primaryFixed }]}>
             <SymbolView name={{ ios: 'person.fill', android: 'person', web: 'person' }} size={48} tintColor={themeColors.primary} />
@@ -105,7 +105,7 @@ export default function ProfileScreen() {
             <Text style={[styles.logoutText, { color: themeColors.error }]}>Se déconnecter de ALLPLANING</Text>
           </Pressable>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -114,7 +114,8 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { padding: 24, paddingBottom: 16 },
   headerTitle: { fontSize: 32, fontWeight: '700' },
-  content: { padding: 16 },
+  content: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 40 },
   avatarContainer: { alignItems: 'center', marginVertical: 32 },
   avatar: {
     width: 100, height: 100, borderRadius: 50, borderWidth: 1,
