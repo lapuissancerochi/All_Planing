@@ -17,6 +17,7 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Vérifier si l'utilisateur est déjà connecté
   useEffect(() => {
@@ -33,9 +34,23 @@ export default function LoginScreen() {
     });
   }, []);
 
+  const validateEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
   const handleSubmit = async () => {
+    setErrorMessage('');
+    
     if (!email || !password) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+      setErrorMessage('Veuillez remplir tous les champs.');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setErrorMessage('Veuillez entrer une adresse email valide.');
+      return;
+    }
+    if (password.length < 6) {
+      setErrorMessage('Le mot de passe doit contenir au moins 6 caractères.');
       return;
     }
     
@@ -47,7 +62,7 @@ export default function LoginScreen() {
         email: email.trim(),
         password: password,
       });
-      if (error) Alert.alert('Erreur de connexion', error.message);
+      if (error) setErrorMessage(error.message);
     } else {
       // Inscription
       const { error } = await supabase.auth.signUp({
@@ -55,12 +70,33 @@ export default function LoginScreen() {
         password: password,
       });
       if (error) {
-        Alert.alert('Erreur', error.message);
+        setErrorMessage(error.message);
       } else {
         Alert.alert('Succès', "Création réussie ! Vous êtes maintenant connecté.");
       }
     }
     
+    setLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    setErrorMessage('');
+    if (!email) {
+      setErrorMessage('Entrez votre email pour recevoir un lien de réinitialisation.');
+      return;
+    }
+    if (!validateEmail(email)) {
+      setErrorMessage('Veuillez entrer une adresse email valide.');
+      return;
+    }
+    
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim());
+    if (error) {
+      setErrorMessage(error.message);
+    } else {
+      Alert.alert('Succès', 'Un lien de réinitialisation a été envoyé à votre adresse email.');
+    }
     setLoading(false);
   };
 
@@ -96,6 +132,12 @@ export default function LoginScreen() {
 
             {/* Form */}
             <View style={styles.formContainer}>
+              {errorMessage ? (
+                <View style={[styles.errorContainer, { backgroundColor: themeColors.errorContainer }]}>
+                  <Text style={[styles.errorText, { color: themeColors.onErrorContainer }]}>{errorMessage}</Text>
+                </View>
+              ) : null}
+
               {/* Email */}
               <View style={styles.inputGroup}>
                 <Text style={[styles.label, { color: themeColors.onSurface }]}>Adresse Email</Text>
@@ -131,7 +173,7 @@ export default function LoginScreen() {
 
               {isLogin && (
                 <View style={styles.forgotPasswordContainer}>
-                  <Pressable>
+                  <Pressable onPress={handleForgotPassword}>
                     <Text style={[styles.forgotPasswordText, { color: themeColors.secondary }]}>Mot de passe oublié ?</Text>
                   </Pressable>
                 </View>
@@ -232,6 +274,16 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     gap: 16,
+  },
+  errorContainer: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   inputGroup: {
     gap: 4,
