@@ -66,14 +66,21 @@ export default function LoginScreen() {
       if (error) setErrorMessage(error.message);
     } else {
       // Inscription
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email: email.trim(),
         password: password,
       });
       if (error) {
         setErrorMessage(error.message);
-      } else {
+      } else if (data.session) {
         Alert.alert('Succès', "Création réussie ! Vous êtes maintenant connecté.");
+      } else {
+        // Le mode "Confirm Email" est activé sur Supabase
+        Alert.alert(
+          'Vérifiez votre boîte mail',
+          "Nous vous avons envoyé un lien de confirmation. Veuillez cliquer dessus pour activer votre compte."
+        );
+        setIsLogin(true); // Bascule automatiquement sur l'écran de connexion
       }
     }
     
