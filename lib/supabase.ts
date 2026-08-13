@@ -28,6 +28,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: ExpoStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: Platform.OS === 'web', // Requis pour Google Auth sur le Web !
   },
 });
