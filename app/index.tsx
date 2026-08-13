@@ -11,7 +11,9 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Linking from 'expo-linking';
 
 // Indispensable pour que le navigateur se referme correctement après la connexion Google
-WebBrowser.maybeCompleteAuthSession();
+if (Platform.OS === 'web' && typeof window !== 'undefined') {
+  WebBrowser.maybeCompleteAuthSession();
+}
 
 export default function LoginScreen() {
   const router = useRouter();
