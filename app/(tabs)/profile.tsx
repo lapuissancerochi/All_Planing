@@ -80,30 +80,39 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Section Paramètres */}
+        {/* Section Paramètres de stockage (Export/Import) */}
         <View style={[styles.card, { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant, marginTop: 16 }]}>
           <View style={styles.cardHeader}>
-            <SymbolView name={{ ios: 'gearshape.fill', android: 'settings', web: 'settings' }} size={24} tintColor={themeColors.outline} />
-            <Text style={[styles.cardTitle, { color: themeColors.onSurface }]}>Paramètres</Text>
+            <SymbolView name={{ ios: 'externaldrive.fill', android: 'save', web: 'save' }} size={24} tintColor={themeColors.outline} />
+            <Text style={[styles.cardTitle, { color: themeColors.onSurface }]}>Sauvegarde des données</Text>
           </View>
+          <Text style={{ color: themeColors.onSurfaceVariant, fontSize: 14, marginBottom: 16 }}>
+            En mode hors-ligne, vos données sont stockées uniquement sur cet appareil. Pensez à faire une sauvegarde régulière.
+          </Text>
           
-          <Pressable 
-            style={({ pressed }) => [styles.logoutBtn, { backgroundColor: themeColors.errorContainer, opacity: pressed ? 0.8 : 1 }]}
-            onPress={async () => {
-              const { supabase } = await import('@/lib/supabase');
-              const { router } = await import('expo-router');
-              await supabase.auth.signOut();
-              // Force reload to clear cache
-              if (Platform.OS === 'web') {
-                window.location.href = '/';
-              } else {
-                router.replace('/');
-              }
-            }}
-          >
-            <SymbolView name={{ ios: 'rectangle.portrait.and.arrow.right', android: 'logout', web: 'logout' }} size={20} tintColor={themeColors.error} />
-            <Text style={[styles.logoutText, { color: themeColors.error }]}>Se déconnecter de ALLPLANING</Text>
-          </Pressable>
+          <View style={{ gap: 12 }}>
+            <Pressable 
+              style={({ pressed }) => [styles.actionBtn, { backgroundColor: themeColors.primary, opacity: pressed ? 0.8 : 1 }]}
+              onPress={async () => {
+                const { exportData } = await import('@/utils/exportImport');
+                exportData();
+              }}
+            >
+              <SymbolView name={{ ios: 'square.and.arrow.up', android: 'upload', web: 'upload' }} size={20} tintColor={themeColors.onPrimary} />
+              <Text style={[styles.actionBtnText, { color: themeColors.onPrimary }]}>Sauvegarder mes données</Text>
+            </Pressable>
+
+            <Pressable 
+              style={({ pressed }) => [styles.actionBtn, { backgroundColor: themeColors.surfaceVariant, opacity: pressed ? 0.8 : 1 }]}
+              onPress={async () => {
+                const { importData } = await import('@/utils/exportImport');
+                importData();
+              }}
+            >
+              <SymbolView name={{ ios: 'square.and.arrow.down', android: 'download', web: 'download' }} size={20} tintColor={themeColors.onSurfaceVariant} />
+              <Text style={[styles.actionBtnText, { color: themeColors.onSurfaceVariant }]}>Restaurer une sauvegarde</Text>
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -151,16 +160,15 @@ const styles = StyleSheet.create({
   },
   statValue: { fontSize: 32, fontWeight: '700', marginBottom: 8 },
   statLabel: { fontSize: 12, textAlign: 'center', fontWeight: '500' },
-  logoutBtn: {
+  actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
     borderRadius: 16,
-    marginTop: 24,
     gap: 8,
   },
-  logoutText: {
+  actionBtnText: {
     fontSize: 16,
     fontWeight: '600',
   }

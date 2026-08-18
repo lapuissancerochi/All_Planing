@@ -11,10 +11,10 @@ import { useTaskStore } from '@/store/useTaskStore';
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
-  const { fetchData } = useTaskStore();
+  const { checkNewDay } = useTaskStore();
 
   useEffect(() => {
-    fetchData();
+    checkNewDay();
   }, []);
 
   return (
