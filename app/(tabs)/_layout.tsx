@@ -68,6 +68,15 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="coach"
+        options={{
+          title: 'Coach',
+          tabBarIcon: ({ color }) => (
+            <SymbolView name={{ ios: 'brain', android: 'psychology', web: 'psychology' }} tintColor={color} size={24} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profil',

@@ -93,6 +93,24 @@ export default function TasksScreen() {
               </View>
             )}
 
+            {item.subtasks && item.subtasks.length > 0 && (
+              <View style={[styles.tag, { backgroundColor: themeColors.surfaceContainerHigh }]}>
+                <SymbolView name={{ ios: 'list.bullet', android: 'format_list_bulleted', web: 'list' }} size={12} tintColor={themeColors.primary} style={{ marginRight: 4 }} />
+                <Text style={[styles.tagText, { color: themeColors.primary }]}>
+                  {item.subtasks.filter(st => st.isCompleted).length}/{item.subtasks.length}
+                </Text>
+              </View>
+            )}
+
+            {item.actualTimeSpent && item.actualTimeSpent > 0 ? (
+              <View style={[styles.tag, { backgroundColor: themeColors.surfaceContainerHigh }]}>
+                <SymbolView name={{ ios: 'timer', android: 'timer', web: 'timer' }} size={12} tintColor={themeColors.tertiary} style={{ marginRight: 4 }} />
+                <Text style={[styles.tagText, { color: themeColors.tertiary }]}>
+                  {Math.floor(item.actualTimeSpent / 60)} min
+                </Text>
+              </View>
+            ) : null}
+
             {item.reminder && (
               <View style={[styles.tag, { backgroundColor: themeColors.surfaceContainerHigh }]}>
                 <SymbolView name={{ ios: 'bell', android: 'notifications', web: 'notifications' }} size={12} tintColor={themeColors.error} style={{ marginRight: 4 }} />

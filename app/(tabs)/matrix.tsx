@@ -67,6 +67,26 @@ export default function MatrixScreen() {
                     </View>
                   )}
 
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 4, flexWrap: 'wrap' }}>
+                    {task.subtasks && task.subtasks.length > 0 && (
+                      <View style={styles.miniTag}>
+                        <SymbolView name={{ ios: 'list.bullet', android: 'format_list_bulleted', web: 'list' }} size={10} tintColor={themeColors.primary} />
+                        <Text style={[styles.miniTagText, { color: themeColors.primary }]}>
+                          {task.subtasks.filter(st => st.isCompleted).length}/{task.subtasks.length}
+                        </Text>
+                      </View>
+                    )}
+
+                    {task.actualTimeSpent && task.actualTimeSpent > 0 ? (
+                      <View style={styles.miniTag}>
+                        <SymbolView name={{ ios: 'timer', android: 'timer', web: 'timer' }} size={10} tintColor={themeColors.tertiary} />
+                        <Text style={[styles.miniTagText, { color: themeColors.tertiary }]}>
+                          {Math.floor(task.actualTimeSpent / 60)}m
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
+
                   <Pressable 
                     style={[styles.focusBtn, { backgroundColor: bgColor, marginTop: 6 }]} 
                     onPress={(e) => {
@@ -203,5 +223,7 @@ const styles = StyleSheet.create({
     padding: 16, 
     borderRadius: 12 
   },
-  doneBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 }
+  doneBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold', marginLeft: 8 },
+  miniTag: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: 'rgba(0,0,0,0.05)' },
+  miniTagText: { fontSize: 10, fontWeight: '600' }
 });

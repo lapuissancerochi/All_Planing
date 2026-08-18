@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, Pressable, View, ScrollView, Platform, Switch } from 'react-native';
 import { Text } from '@/components/Themed';
 import { useRouter } from 'expo-router';
-import { useTaskStore, TaskImportance } from '@/store/useTaskStore';
+import { useTaskStore, TaskImportance, Subtask } from '@/store/useTaskStore';
 import Colors from '@/constants/Colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useColorScheme } from '@/components/useColorScheme';
 import Toast from 'react-native-toast-message';
 import { useNotifications } from '@/hooks/useNotifications';
 import { SymbolView } from 'expo-symbols';
+import uuid from 'react-native-uuid';
 
 export default function AddTaskScreen() {
   const router = useRouter();
@@ -29,6 +30,13 @@ export default function AddTaskScreen() {
   const [dateStr, setDateStr] = useState('');
   const [timeStr, setTimeStr] = useState('');
   const [reminderEnabled, setReminderEnabled] = useState(false);
+  
+  // NOUVEAU: Sous-tâches locales avant l'enregistrement
+  const [subtasks, setSubtasks] = useState<Subtask[]>([]);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  
+  // NOUVEAU: Projet associé (Phase 3)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>();
 
   const handleDateChange = (event: any, selectedDate?: Date) => {
     setShowDatePicker(false);
@@ -44,6 +52,16 @@ export default function AddTaskScreen() {
       setDate(selectedDate);
       setTimeSet(true);
     }
+  };
+
+  const handleAddSubtask = () => {
+    if (!newSubtaskTitle.trim()) return;
+    setSubtasks([...subtasks, { id: uuid.v4() as string, title: newSubtaskTitle.trim(), isCompleted: false }]);
+    setNewSubtaskTitle('');
+  };
+
+  const handleRemoveSubtask = (id: string) => {
+    setSubtasks(subtasks.filter(st => st.id !== id));
   };
 
   const formattedDate = dateSet ? date.toISOString() : '';
@@ -78,7 +96,9 @@ export default function AddTaskScreen() {
       date: finalDate,
       time: finalTime,
       estimatedDuration: isNaN(duration as number) ? undefined : duration,
-      reminder: reminderEnabled
+      reminder: reminderEnabled,
+      subtasks: subtasks, // Enregistrement des sous-tâches initiales
+      projectId: selectedProjectId // Phase 3
     });
     
     if (reminderEnabled) {
@@ -130,6 +150,68 @@ export default function AddTaskScreen() {
           <ImportanceOption level="low" label="Faible" icon="arrow.down.circle" color="#4B88FF" />
         </View>
       </View>
+
+      {/* SOUS-TÂCHES (NOUVEAU) */}
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Sous-tâches (Décomposition)</Text>
+        
+        {subtasks.map((st, index) => (
+          <View key={st.id} style={[styles.subtaskRow, { borderColor: themeColors.text + '20' }]}>
+            <Text style={{ color: themeColors.text, flex: 1 }}>{index + 1}. {st.title}</Text>
+            <Pressable onPress={() => handleRemoveSubtask(st.id)} style={{ padding: 4 }}>
+              <SymbolView name={{ ios: 'minus.circle.fill', android: 'remove_circle', web: 'remove_circle' }} size={20} tintColor="#FF4B4B" />
+            </Pressable>
+          </View>
+        ))}
+
+        <View style={styles.addSubtaskContainer}>
+          <TextInput
+            style={[styles.input, styles.subtaskInput, { color: themeColors.text, borderColor: themeColors.text + '40' }]}
+            placeholder="Ex: Créer la maquette"
+            placeholderTextColor="#888"
+            value={newSubtaskTitle}
+            onChangeText={setNewSubtaskTitle}
+            onSubmitEditing={handleAddSubtask}
+          />
+          <Pressable 
+            style={[styles.addSubtaskBtn, { backgroundColor: newSubtaskTitle.trim() ? themeColors.tint : themeColors.text + '40' }]}
+            onPress={handleAddSubtask}
+            disabled={!newSubtaskTitle.trim()}
+          >
+            <SymbolView name={{ ios: 'plus', android: 'add', web: 'add' }} size={20} tintColor="#fff" />
+          </Pressable>
+        </View>
+      </View>
+
+      {/* PROJET ASSOCIE (PHASE 3) */}
+      {useTaskStore.getState().projects.length > 0 && (
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Associer à un projet</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexDirection: 'row', gap: 8 }}>
+            <Pressable 
+              style={[
+                { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: themeColors.text + '40', marginRight: 8 },
+                !selectedProjectId && { backgroundColor: themeColors.tint }
+              ]}
+              onPress={() => setSelectedProjectId(undefined)}
+            >
+              <Text style={{ color: !selectedProjectId ? '#fff' : themeColors.text }}>Aucun</Text>
+            </Pressable>
+            {useTaskStore.getState().projects.map(p => (
+              <Pressable 
+                key={p.id}
+                style={[
+                  { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, borderWidth: 1, borderColor: themeColors.text + '40', marginRight: 8 },
+                  selectedProjectId === p.id && { backgroundColor: themeColors.tint }
+                ]}
+                onPress={() => setSelectedProjectId(p.id)}
+              >
+                <Text style={{ color: selectedProjectId === p.id ? '#fff' : themeColors.text }}>{p.title}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       <View style={styles.formGroup}>
         <Text style={styles.label}>Description (optionnel)</Text>
@@ -295,5 +377,26 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  subtaskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  addSubtaskContainer: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 8,
+  },
+  subtaskInput: {
+    flex: 1,
+    paddingVertical: 12,
+  },
+  addSubtaskBtn: {
+    width: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 });
