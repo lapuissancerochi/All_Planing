@@ -7,6 +7,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { SymbolView } from 'expo-symbols';
 import { useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import { analyzeTask } from '@/utils/priorityEngine';
 
 export default function DashboardScreen() {
   const { tasks, focusSessionsCompletedToday, tasksCompletedToday, tasksCreatedToday } = useTaskStore();
@@ -20,9 +21,12 @@ export default function DashboardScreen() {
     const execRatio = tasksCreatedToday > 0 ? (tasksCompletedToday / tasksCreatedToday) : (tasksCompletedToday > 0 ? 1 : 0);
     const execScore = Math.min(1, execRatio) * 40;
 
-    // 2. Priorisation (35%) : % de tâches bien classées terminées (Q1 & Q2)
+    // 2. Priorisation (35%) : % de tâches bien classées terminées (Q1 & Q2 via IA)
     const completedTasks = tasks.filter(t => t.status === 'done');
-    const goodPrioTasks = completedTasks.filter(t => t.quadrant === 'Q1' || t.quadrant === 'Q2');
+    const goodPrioTasks = completedTasks.filter(t => {
+      const q = analyzeTask(t).quadrant;
+      return q === 'Q1' || q === 'Q2';
+    });
     const prioRatio = completedTasks.length > 0 ? (goodPrioTasks.length / completedTasks.length) : 0;
     const prioScore = prioRatio * 35;
 
@@ -52,8 +56,16 @@ export default function DashboardScreen() {
   };
 
   // --- STATISTIQUES DU JOUR ---
-  const top3Tasks = tasks.filter(t => t.status !== 'done' && (t.quadrant === 'Q1' || t.quadrant === 'Q2')).slice(0, 3);
-  const estimatedTime = tasks.filter(t => t.status !== 'done').length * 25; // 25 min par tâche
+  const activeTasks = tasks.filter(t => t.status !== 'done');
+  const tasksWithDetails = activeTasks.map(t => ({ task: t, details: analyzeTask(t) }));
+  
+  const top3Tasks = tasksWithDetails
+    .filter(t => t.details.quadrant === 'Q1' || t.details.quadrant === 'Q2')
+    .sort((a, b) => b.details.priorityScore - a.details.priorityScore)
+    .slice(0, 3)
+    .map(t => t.task);
+
+  const estimatedTime = activeTasks.reduce((acc, t) => acc + (t.estimatedDuration || 25), 0); // 25 min par défaut
   const estimatedHours = Math.floor(estimatedTime / 60);
   const estimatedMins = estimatedTime % 60;
 

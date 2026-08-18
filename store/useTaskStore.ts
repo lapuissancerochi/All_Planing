@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import uuid from 'react-native-uuid';
 
 export type Quadrant = 'Q1' | 'Q2' | 'Q3' | 'Q4';
+export type TaskImportance = 'low' | 'medium' | 'high';
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
 
 export interface Task {
@@ -12,10 +13,14 @@ export interface Task {
   description?: string;
   date?: string;
   time?: string;
+  estimatedDuration?: number; // en minutes
   reminder?: boolean;
-  quadrant: Quadrant;
+  importance: TaskImportance;
   status: TaskStatus;
   created_at?: string;
+  // NOTE: 'quadrant' a été supprimé. Il est calculé dynamiquement par priorityEngine.
+  // Pour la rétrocompatibilité temporaire des anciens JSON, on peut le garder en optionnel
+  quadrant?: Quadrant; 
 }
 
 interface TaskState {
@@ -37,7 +42,6 @@ interface TaskState {
   updateTask: (id: string, updatedTask: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   changeTaskStatus: (id: string, status: TaskStatus) => void;
-  changeTaskQuadrant: (id: string, quadrant: Quadrant) => void;
   incrementFocusSessions: () => void;
   checkNewDay: () => void;
 }
@@ -135,14 +139,6 @@ export const useTaskStore = create<TaskState>()(
           ),
           tasksCompletedToday,
           totalTasksCompleted,
-        }));
-      },
-
-      changeTaskQuadrant: (id, quadrant) => {
-        set((state) => ({
-          tasks: state.tasks.map((task) => 
-            task.id === id ? { ...task, quadrant } : task
-          )
         }));
       },
 

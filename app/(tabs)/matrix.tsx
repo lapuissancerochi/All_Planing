@@ -1,74 +1,90 @@
 import { StyleSheet, View, ScrollView, Pressable, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/components/Themed';
-import { useTaskStore, Task, Quadrant } from '@/store/useTaskStore';
+import { useTaskStore, Task } from '@/store/useTaskStore';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SymbolView } from 'expo-symbols';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
+import { analyzeTask, CalculatedTaskDetails } from '@/utils/priorityEngine';
+
+type TaskWithDetails = { task: Task, details: CalculatedTaskDetails };
 
 export default function MatrixScreen() {
-  const { tasks, changeTaskQuadrant, changeTaskStatus } = useTaskStore();
+  const { tasks, changeTaskStatus } = useTaskStore();
   const colorScheme = useColorScheme();
   const themeColors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  const q1Tasks = tasks.filter(t => t.quadrant === 'Q1' && t.status !== 'done');
-  const q2Tasks = tasks.filter(t => t.quadrant === 'Q2' && t.status !== 'done');
-  const q3Tasks = tasks.filter(t => t.quadrant === 'Q3' && t.status !== 'done');
-  const q4Tasks = tasks.filter(t => t.quadrant === 'Q4' && t.status !== 'done');
+  const activeTasks = tasks.filter(t => t.status !== 'done');
+  const tasksWithDetails: TaskWithDetails[] = activeTasks.map(t => ({ task: t, details: analyzeTask(t) }));
 
-  const QuadrantBlock = ({ title, data, q, color, bgColor, emptyMsg }: { title: string, data: Task[], q: Quadrant, color: string, bgColor: string, emptyMsg: string }) => (
+  const q1Tasks = tasksWithDetails.filter(t => t.details.quadrant === 'Q1').sort((a, b) => b.details.priorityScore - a.details.priorityScore);
+  const q2Tasks = tasksWithDetails.filter(t => t.details.quadrant === 'Q2').sort((a, b) => b.details.priorityScore - a.details.priorityScore);
+  const q3Tasks = tasksWithDetails.filter(t => t.details.quadrant === 'Q3').sort((a, b) => b.details.priorityScore - a.details.priorityScore);
+  const q4Tasks = tasksWithDetails.filter(t => t.details.quadrant === 'Q4').sort((a, b) => b.details.priorityScore - a.details.priorityScore);
+
+  const QuadrantBlock = ({ title, data, qColor, bgColor, emptyMsg }: { title: string, data: TaskWithDetails[], qColor: string, bgColor: string, emptyMsg: string }) => (
     <View style={[styles.quadrant, { borderColor: themeColors.surfaceVariant, backgroundColor: themeColors.surfaceContainerLowest }]}>
       <View style={[styles.quadrantHeader, { borderBottomColor: themeColors.surfaceVariant }]}>
         <View style={styles.headerLeft}>
-          <View style={[styles.colorDot, { backgroundColor: color }]} />
+          <View style={[styles.colorDot, { backgroundColor: qColor }]} />
           <Text style={[styles.quadrantTitle, { color: themeColors.onSurface }]}>{title}</Text>
         </View>
-        <View style={[styles.badge, { backgroundColor: bgColor, borderColor: color + '40', borderWidth: 1 }]}>
-          <Text style={[styles.badgeText, { color }]}>{data.length}</Text>
+        <View style={[styles.badge, { backgroundColor: bgColor, borderColor: qColor + '40', borderWidth: 1 }]}>
+          <Text style={[styles.badgeText, { color: qColor }]}>{data.length}</Text>
         </View>
       </View>
       <ScrollView style={styles.quadrantScroll} showsVerticalScrollIndicator={false}>
         {data.length === 0 ? (
           <Text style={styles.emptyMsg}>{emptyMsg}</Text>
         ) : (
-          data.map(task => (
-            <Pressable 
-              key={task.id} 
-              style={[styles.taskCard, { backgroundColor: themeColors.surfaceBright, borderColor: themeColors.surfaceVariant }]}
-              onPress={() => setSelectedTask(task)}
-            >
-              <View style={[styles.taskCheckbox, { borderColor: themeColors.outlineVariant }]} />
-              <View style={styles.taskContent}>
-                <Text style={[styles.taskTitle, { color: themeColors.onSurface }]} numberOfLines={2}>{task.title}</Text>
-                <Pressable 
-                  style={[styles.focusBtn, { backgroundColor: bgColor }]} 
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    router.push(`/focus?id=${task.id}`);
-                  }}
-                >
-                  <SymbolView name={{ ios: 'target', android: 'my_location', web: 'my_location' }} size={14} tintColor={color} />
-                  <Text style={[styles.focusBtnText, { color }]}>Focus</Text>
-                </Pressable>
-              </View>
-            </Pressable>
-          ))
+          data.map(({ task, details }) => {
+            // Mapping de la couleur visuelle retournée par le moteur vers notre thème
+            let timerColor = '#34C759'; // green
+            if (details.visualColor === 'yellow') timerColor = '#FFCC00';
+            if (details.visualColor === 'orange') timerColor = '#FF9500';
+            if (details.visualColor === 'red') timerColor = '#FF3B30';
+            if (details.visualColor === 'black') timerColor = '#000000';
+
+            return (
+              <Pressable 
+                key={task.id} 
+                style={[styles.taskCard, { backgroundColor: themeColors.surfaceBright, borderColor: themeColors.surfaceVariant }]}
+                onPress={() => setSelectedTask(task)}
+              >
+                <View style={[styles.taskCheckbox, { borderColor: themeColors.outlineVariant }]} />
+                <View style={styles.taskContent}>
+                  <Text style={[styles.taskTitle, { color: themeColors.onSurface }]} numberOfLines={2}>{task.title}</Text>
+                  
+                  {details.formattedTimeRemaining && (
+                    <View style={styles.timerBadge}>
+                      <SymbolView name={{ ios: 'clock', android: 'schedule', web: 'schedule' }} size={12} tintColor={timerColor} />
+                      <Text style={[styles.timerText, { color: timerColor }]}>{details.formattedTimeRemaining}</Text>
+                    </View>
+                  )}
+
+                  <Pressable 
+                    style={[styles.focusBtn, { backgroundColor: bgColor, marginTop: 6 }]} 
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      router.push(`/focus?id=${task.id}`);
+                    }}
+                  >
+                    <SymbolView name={{ ios: 'target', android: 'my_location', web: 'my_location' }} size={14} tintColor={qColor} />
+                    <Text style={[styles.focusBtnText, { color: qColor }]}>Focus</Text>
+                  </Pressable>
+                </View>
+              </Pressable>
+            );
+          })
         )}
       </ScrollView>
     </View>
   );
-
-  const moveTask = (newQ: Quadrant) => {
-    if (selectedTask) {
-      changeTaskQuadrant(selectedTask.id, newQ);
-      setSelectedTask(null);
-    }
-  };
 
   const markDone = () => {
     if (selectedTask) {
@@ -80,17 +96,17 @@ export default function MatrixScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeColors.surfaceBright }]} edges={['top']}>
       <View style={styles.header}>
-        <Text style={[styles.title, { color: themeColors.onSurface }]}>Eisenhower Matrix</Text>
-        <Text style={[styles.subtitle, { color: themeColors.onSurfaceVariant }]}>Focus on what matters most.</Text>
+        <Text style={[styles.title, { color: themeColors.onSurface }]}>Eisenhower IA</Text>
+        <Text style={[styles.subtitle, { color: themeColors.onSurfaceVariant }]}>Les quadrants sont générés automatiquement.</Text>
       </View>
       
       <View style={styles.row}>
-        <QuadrantBlock title="À faire" data={q1Tasks} q="Q1" color={themeColors.q1} bgColor={themeColors.q1Container} emptyMsg="Bravo ! Pas d'urgences." />
-        <QuadrantBlock title="À planifier" data={q2Tasks} q="Q2" color={themeColors.q2} bgColor={themeColors.q2Container} emptyMsg="Vos objectifs à long terme ici." />
+        <QuadrantBlock title="À faire" data={q1Tasks} qColor={themeColors.q1} bgColor={themeColors.q1Container} emptyMsg="Bravo ! Pas d'urgences." />
+        <QuadrantBlock title="À planifier" data={q2Tasks} qColor={themeColors.q2} bgColor={themeColors.q2Container} emptyMsg="Vos objectifs à long terme ici." />
       </View>
       <View style={styles.row}>
-        <QuadrantBlock title="À déléguer" data={q3Tasks} q="Q3" color={themeColors.q3} bgColor={themeColors.q3Container} emptyMsg="Rien à déléguer pour le moment." />
-        <QuadrantBlock title="À éliminer" data={q4Tasks} q="Q4" color={themeColors.q4} bgColor={themeColors.q4Container} emptyMsg="Parfait, pas de distractions !" />
+        <QuadrantBlock title="À déléguer" data={q3Tasks} qColor={themeColors.q3} bgColor={themeColors.q3Container} emptyMsg="Rien à déléguer pour le moment." />
+        <QuadrantBlock title="À éliminer" data={q4Tasks} qColor={themeColors.q4} bgColor={themeColors.q4Container} emptyMsg="Parfait, pas de distractions !" />
       </View>
 
       <Modal visible={!!selectedTask} transparent animationType="slide">
@@ -98,21 +114,13 @@ export default function MatrixScreen() {
           <Pressable style={styles.modalBackdrop} onPress={() => setSelectedTask(null)} />
           <View style={[styles.modalContent, { backgroundColor: themeColors.surfaceBright }]}>
             <View style={styles.modalHandle} />
-            <Text style={[styles.modalTitle, { color: themeColors.onSurface }]}>Déplacer "{selectedTask?.title}"</Text>
+            <Text style={[styles.modalTitle, { color: themeColors.onSurface }]}>Tâche : {selectedTask?.title}</Text>
             
             <View style={styles.actionGrid}>
-              <Pressable style={[styles.actionBtn, { borderColor: themeColors.q1, backgroundColor: themeColors.q1Container }]} onPress={() => moveTask('Q1')}>
-                <Text style={[styles.actionText, { color: themeColors.q1 }]}>Important & Urgent (À faire)</Text>
-              </Pressable>
-              <Pressable style={[styles.actionBtn, { borderColor: themeColors.q2, backgroundColor: themeColors.q2Container }]} onPress={() => moveTask('Q2')}>
-                <Text style={[styles.actionText, { color: themeColors.q2 }]}>Important, Pas Urgent (À planifier)</Text>
-              </Pressable>
-              <Pressable style={[styles.actionBtn, { borderColor: themeColors.q3, backgroundColor: themeColors.q3Container }]} onPress={() => moveTask('Q3')}>
-                <Text style={[styles.actionText, { color: themeColors.q3 }]}>Pas Important, Urgent (À déléguer)</Text>
-              </Pressable>
-              <Pressable style={[styles.actionBtn, { borderColor: themeColors.q4, backgroundColor: themeColors.q4Container }]} onPress={() => moveTask('Q4')}>
-                <Text style={[styles.actionText, { color: themeColors.q4 }]}>Pas Important / Pas Urgent (À éliminer)</Text>
-              </Pressable>
+              {/* Le changement manuel de quadrant est désactivé car c'est géré par l'IA */}
+              <Text style={{ textAlign: 'center', color: themeColors.onSurfaceVariant, fontStyle: 'italic', marginBottom: 16 }}>
+                La priorité est gérée automatiquement par l'intelligence d'ALLPLANING en fonction de l'échéance et de l'importance.
+              </Text>
             </View>
 
             <Pressable style={styles.doneBtn} onPress={markDone}>
@@ -164,7 +172,9 @@ const styles = StyleSheet.create({
   },
   taskCheckbox: { width: 20, height: 20, borderRadius: 4, borderWidth: 1, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   taskContent: { flex: 1 },
-  taskTitle: { fontSize: 14, fontWeight: '500', marginBottom: 6 },
+  taskTitle: { fontSize: 14, fontWeight: '500', marginBottom: 4 },
+  timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 4 },
+  timerText: { fontSize: 12, fontWeight: '600' },
   focusBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 
@@ -185,8 +195,6 @@ const styles = StyleSheet.create({
   modalHandle: { width: 40, height: 4, backgroundColor: '#888', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
   actionGrid: { gap: 12, marginBottom: 24 },
-  actionBtn: { padding: 16, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
-  actionText: { fontSize: 14, fontWeight: '600' },
   doneBtn: { 
     flexDirection: 'row', 
     alignItems: 'center', 

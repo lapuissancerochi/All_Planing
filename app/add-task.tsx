@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { StyleSheet, TextInput, Pressable, View, ScrollView, Platform, Switch } from 'react-native';
 import { Text } from '@/components/Themed';
 import { useRouter } from 'expo-router';
-import { useTaskStore, Quadrant } from '@/store/useTaskStore';
+import { useTaskStore, TaskImportance } from '@/store/useTaskStore';
 import Colors from '@/constants/Colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useColorScheme } from '@/components/useColorScheme';
 import Toast from 'react-native-toast-message';
 import { useNotifications } from '@/hooks/useNotifications';
+import { SymbolView } from 'expo-symbols';
 
 export default function AddTaskScreen() {
   const router = useRouter();
@@ -18,7 +19,8 @@ export default function AddTaskScreen() {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [quadrant, setQuadrant] = useState<Quadrant>('Q1');
+  const [importance, setImportance] = useState<TaskImportance>('medium');
+  const [estimatedDuration, setEstimatedDuration] = useState(''); // en minutes
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -44,33 +46,49 @@ export default function AddTaskScreen() {
     }
   };
 
-  const formattedDate = dateSet ? date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : '';
+  const formattedDate = dateSet ? date.toISOString() : '';
   const formattedTime = timeSet ? date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
 
   const handleSave = () => {
     if (!title.trim()) return;
     
-    const finalDate = Platform.OS === 'web' ? dateStr : formattedDate;
-    const finalTime = Platform.OS === 'web' ? timeStr : formattedTime;
+    // Web vs Native date parsing
+    let finalDate = undefined;
+    if (Platform.OS === 'web' && dateStr) {
+      const parts = dateStr.split('/');
+      if (parts.length === 2) {
+        const d = new Date();
+        d.setMonth(parseInt(parts[1]) - 1, parseInt(parts[0]));
+        finalDate = d.toISOString();
+      } else {
+        finalDate = new Date().toISOString();
+      }
+    } else if (dateSet) {
+      finalDate = date.toISOString();
+    }
+
+    const finalTime = Platform.OS === 'web' && timeStr ? timeStr : timeSet ? formattedTime : undefined;
+    const duration = estimatedDuration ? parseInt(estimatedDuration, 10) : undefined;
 
     addTask({
       title: title.trim(),
       description: description.trim(),
-      quadrant,
+      importance,
       status: 'todo',
       date: finalDate,
       time: finalTime,
+      estimatedDuration: isNaN(duration as number) ? undefined : duration,
       reminder: reminderEnabled
     });
     
     if (reminderEnabled) {
-      scheduleTaskReminder(title.trim(), 5); // Rappel 5 min avant par défaut (démo)
+      scheduleTaskReminder(title.trim(), 5);
     }
     
     Toast.show({
       type: 'success',
       text1: 'Tâche enregistrée ✅',
-      text2: 'Elle a été ajoutée à votre matrice.',
+      text2: 'Le système calculera sa priorité.',
       position: 'top',
       visibilityTime: 3000,
     });
@@ -78,16 +96,16 @@ export default function AddTaskScreen() {
     router.back();
   };
 
-  const QuadrantOption = ({ q, label, color }: { q: Quadrant, label: string, color: string }) => (
+  const ImportanceOption = ({ level, label, icon, color }: { level: TaskImportance, label: string, icon: string, color: string }) => (
     <Pressable 
       style={[
-        styles.quadrantOption, 
-        quadrant === q && { borderColor: color, backgroundColor: color + '15' }
+        styles.importanceOption, 
+        importance === level && { borderColor: color, backgroundColor: color + '15' }
       ]}
-      onPress={() => setQuadrant(q)}
+      onPress={() => setImportance(level)}
     >
-      <View style={[styles.dot, { backgroundColor: color }]} />
-      <Text style={[styles.quadrantText, quadrant === q && { color, fontWeight: 'bold' }]}>{label}</Text>
+      <SymbolView name={{ ios: icon as any, android: icon as any, web: icon as any }} size={24} tintColor={importance === level ? color : '#888'} />
+      <Text style={[styles.importanceText, importance === level && { color, fontWeight: 'bold' }]}>{label}</Text>
     </Pressable>
   );
 
@@ -105,6 +123,15 @@ export default function AddTaskScreen() {
       </View>
 
       <View style={styles.formGroup}>
+        <Text style={styles.label}>Niveau d'importance</Text>
+        <View style={styles.importanceGroup}>
+          <ImportanceOption level="high" label="Élevée" icon="exclamationmark.triangle.fill" color="#FF4B4B" />
+          <ImportanceOption level="medium" label="Moyenne" icon="star.fill" color="#FFB84B" />
+          <ImportanceOption level="low" label="Faible" icon="arrow.down.circle" color="#4B88FF" />
+        </View>
+      </View>
+
+      <View style={styles.formGroup}>
         <Text style={styles.label}>Description (optionnel)</Text>
         <TextInput
           style={[styles.input, styles.textArea, { color: themeColors.text, borderColor: themeColors.text + '40' }]}
@@ -119,7 +146,7 @@ export default function AddTaskScreen() {
 
       <View style={{flexDirection: 'row', gap: 12}}>
         <View style={[styles.formGroup, {flex: 1}]}>
-          <Text style={styles.label}>Date</Text>
+          <Text style={styles.label}>Date limite</Text>
           {Platform.OS === 'web' ? (
             <TextInput
               style={[styles.input, { color: themeColors.text, borderColor: themeColors.text + '40' }]}
@@ -134,18 +161,18 @@ export default function AddTaskScreen() {
               onPress={() => setShowDatePicker(true)}
             >
               <Text style={{ color: dateSet ? themeColors.text : '#888' }}>
-                {dateSet ? formattedDate : "Sélectionner"}
+                {dateSet ? date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) : "Optionnel"}
               </Text>
             </Pressable>
           )}
         </View>
         
         <View style={[styles.formGroup, {flex: 1}]}>
-          <Text style={styles.label}>Heure</Text>
+          <Text style={styles.label}>Heure limite</Text>
           {Platform.OS === 'web' ? (
             <TextInput
               style={[styles.input, { color: themeColors.text, borderColor: themeColors.text + '40' }]}
-              placeholder="Ex: 14:30"
+              placeholder="Ex: 18:00"
               placeholderTextColor="#888"
               value={timeStr}
               onChangeText={setTimeStr}
@@ -161,6 +188,18 @@ export default function AddTaskScreen() {
             </Pressable>
           )}
         </View>
+      </View>
+
+      <View style={styles.formGroup}>
+        <Text style={styles.label}>Durée estimée (en minutes)</Text>
+        <TextInput
+          style={[styles.input, { color: themeColors.text, borderColor: themeColors.text + '40' }]}
+          placeholder="Ex: 120 pour 2 heures"
+          placeholderTextColor="#888"
+          keyboardType="numeric"
+          value={estimatedDuration}
+          onChangeText={setEstimatedDuration}
+        />
       </View>
 
       <View style={[styles.formGroup, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
@@ -193,16 +232,6 @@ export default function AddTaskScreen() {
           onChange={handleTimeChange}
         />
       )}
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Priorité (Matrice Eisenhower)</Text>
-        <View style={styles.quadrantGrid}>
-          <QuadrantOption q="Q1" label="Important & Urgent" color="#FF4B4B" />
-          <QuadrantOption q="Q2" label="Important, Pas Urgent" color="#4B88FF" />
-          <QuadrantOption q="Q3" label="Urgent, Pas Important" color="#FFB84B" />
-          <QuadrantOption q="Q4" label="Pas Important/Urgent" color="#888888" />
-        </View>
-      </View>
 
       <Pressable 
         style={[styles.saveBtn, { backgroundColor: title.trim() ? themeColors.tint : '#555' }]} 
@@ -238,29 +267,22 @@ const styles = StyleSheet.create({
     height: 100,
     textAlignVertical: 'top',
   },
-  quadrantGrid: {
+  importanceGroup: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
+    gap: 8,
   },
-  quadrantOption: {
-    width: '48%',
-    flexDirection: 'row',
+  importanceOption: {
+    flex: 1,
+    flexDirection: 'column',
     alignItems: 'center',
     padding: 12,
     borderWidth: 1,
     borderColor: '#444',
-    borderRadius: 8,
+    borderRadius: 12,
+    gap: 8,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  quadrantText: {
+  importanceText: {
     fontSize: 13,
-    flexShrink: 1,
   },
   saveBtn: {
     padding: 16,

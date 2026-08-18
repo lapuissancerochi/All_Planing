@@ -7,6 +7,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { SymbolView } from 'expo-symbols';
 import Toast from 'react-native-toast-message';
 import { Link } from 'expo-router';
+import { analyzeTask } from '@/utils/priorityEngine';
 
 export default function TasksScreen() {
   const { tasks, changeTaskStatus, deleteTask } = useTaskStore();
@@ -23,7 +24,19 @@ export default function TasksScreen() {
     }
   };
 
+  const getTimerColor = (visualColor: string) => {
+    switch(visualColor) {
+      case 'yellow': return '#FFCC00';
+      case 'orange': return '#FF9500';
+      case 'red': return '#FF3B30';
+      case 'black': return '#000000';
+      default: return '#34C759'; // green
+    }
+  };
+
   const renderTask = ({ item }: { item: Task }) => {
+    const details = analyzeTask(item);
+    
     const toggleStatus = () => {
       if (item.status === 'todo') changeTaskStatus(item.id, 'in_progress');
       else if (item.status === 'in_progress') changeTaskStatus(item.id, 'done');
@@ -36,7 +49,7 @@ export default function TasksScreen() {
         { backgroundColor: themeColors.surfaceContainerLowest, borderColor: themeColors.surfaceVariant },
         item.status === 'done' && { opacity: 0.7 }
       ]}>
-        <View style={[styles.priorityIndicator, { backgroundColor: getQuadrantColor(item.quadrant) }]} />
+        <View style={[styles.priorityIndicator, { backgroundColor: getQuadrantColor(details.quadrant) }]} />
         
         <Pressable style={styles.checkboxContainer} onPress={toggleStatus}>
           <View style={[
@@ -69,15 +82,17 @@ export default function TasksScreen() {
           ) : null}
           
           <View style={styles.tagsContainer}>
-            <View style={[styles.tag, { backgroundColor: getQuadrantColor(item.quadrant) + '20' }]}>
-              <Text style={[styles.tagText, { color: getQuadrantColor(item.quadrant) }]}>{item.quadrant}</Text>
+            <View style={[styles.tag, { backgroundColor: getQuadrantColor(details.quadrant) + '20' }]}>
+              <Text style={[styles.tagText, { color: getQuadrantColor(details.quadrant) }]}>{details.quadrant}</Text>
             </View>
-            {item.date && (
+            
+            {details.formattedTimeRemaining && (
               <View style={[styles.tag, { backgroundColor: themeColors.surfaceContainerHigh }]}>
-                <SymbolView name={{ ios: 'calendar', android: 'event', web: 'event' }} size={12} tintColor={themeColors.onSurfaceVariant} style={{ marginRight: 4 }} />
-                <Text style={[styles.tagText, { color: themeColors.onSurfaceVariant }]}>{item.date}</Text>
+                <SymbolView name={{ ios: 'clock', android: 'schedule', web: 'schedule' }} size={12} tintColor={getTimerColor(details.visualColor)} style={{ marginRight: 4 }} />
+                <Text style={[styles.tagText, { color: getTimerColor(details.visualColor) }]}>{details.formattedTimeRemaining}</Text>
               </View>
             )}
+
             {item.reminder && (
               <View style={[styles.tag, { backgroundColor: themeColors.surfaceContainerHigh }]}>
                 <SymbolView name={{ ios: 'bell', android: 'notifications', web: 'notifications' }} size={12} tintColor={themeColors.error} style={{ marginRight: 4 }} />
